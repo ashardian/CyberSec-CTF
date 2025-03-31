@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure CTF Arena</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+         :root {
+            --primary: #0a192f;
+            --secondary: #172a45;
+            --accent: #64ffda;
+            --text: #ccd6f6;
+            --text-secondary: #8892b0;
+            --danger: #ff5555;
+            --easy: #4CAF50;
+            --medium: #FFC107;
+            --hard: #F44336;
+            --insane: #9C27B0;
+        }
+        
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: var(--primary);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            flex: 1;
+        }
+        
+        header {
+            background-color: var(--secondary);
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-family: 'Ubuntu Mono', monospace;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .username {
+            color: var(--accent);
+            font-weight: bold;
+        }
+        
+        .timer {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: 'Ubuntu Mono', monospace;
+        }
+        
+        .score {
+            background: var(--accent);
+            color: var(--primary);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .ctf-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .sidebar {
+            background: var(--secondary);
+            border-radius: 8px;
+            padding: 20px;
+            height: fit-content;
+        }
+        
+        .challenge-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .challenge-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 4px;
+        }
+        
+        .challenge-item:hover {
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .challenge-item.active {
+            border-left: 3px solid var(--accent);
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .challenge-item.solved {
+            background: rgba(76, 175, 80, 0.1);
+        }
+        
+        .challenge-difficulty {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .easy {
+            background: var(--easy);
+        }
+        
+        .medium {
+            background: var(--medium);
+        }
+        
+        .hard {
+            background: var(--hard);
+        }
+        
+        .insane {
+            background: var(--insane);
+        }
+        
+        .challenge-content {
+            background: var(--secondary);
+            border-radius: 8px;
+            padding: 30px;
+        }
+        
+        .challenge-title {
+            color: var(--accent);
+            font-size: 24px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .challenge-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+        }
+        
+        .challenge-description {
+            margin-bottom: 30px;
+            line-height: 1.7;
+        }
+        
+        .challenge-hint {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-left: 3px solid var(--accent);
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .hint-btn {
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            padding: 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .flag-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        .flag-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(100, 255, 218, 0.3);
+            padding: 12px 15px;
+            color: var(--text);
+            font-family: 'Ubuntu Mono', monospace;
+            border-radius: 4px;
+        }
+        
+        .flag-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .submit-btn {
+            background: var(--accent);
+            color: var(--primary);
+            border: none;
+            padding: 0 25px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background: #52e0c4;
+        }
+        
+        .terminal {
+            background: #011627;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Ubuntu Mono', monospace;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .terminal-line {
+            margin-bottom: 5px;
+        }
+        
+        .terminal-prompt {
+            color: var(--accent);
+        }
+        
+        .terminal-command {
+            color: var(--text);
+        }
+        
+        .terminal-output {
+            color: var(--text-secondary);
+        }
+        
+        .indent {
+            margin-left: 20px;
+        }
+        
+        .indent-2 {
+            margin-left: 40px;
+        }
+        
+        .leaderboard {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+        
+        .leaderboard th {
+            text-align: left;
+            padding: 12px 15px;
+            background: var(--secondary);
+            color: var(--accent);
+        }
+        
+        .leaderboard td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+        }
+        
+        .leaderboard tr:hover {
+            background: rgba(100, 255, 218, 0.05);
+        }
+        
+        .rank-1 {
+            color: gold;
+            font-weight: bold;
+        }
+        
+        .rank-2 {
+            color: silver;
+            font-weight: bold;
+        }
+        
+        .rank-3 {
+            color: #cd7f32;
+            font-weight: bold;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: var(--secondary);
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .modal-title {
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--accent);
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(100, 255, 218, 0.3);
+            color: var(--text);
+            border-radius: 4px;
+        }
+        
+        .start-btn {
+            background: var(--accent);
+            color: var(--primary);
+            border: none;
+            padding: 12px 25px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .difficulty-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .difficulty-option {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .difficulty-option:hover {
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .difficulty-option.selected {
+            background: var(--accent);
+            color: var(--primary);
+            font-weight: bold;
+        }
+        
+        footer {
+            background: var(--secondary);
+            padding: 30px 0;
+            margin-top: 50px;
+            border-top: 1px solid rgba(100, 255, 218, 0.1);
+        }
+        
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .social-icons {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .social-icon {
+            color: var(--text);
+            font-size: 24px;
+            transition: color 0.3s;
+        }
+        
+        .social-icon:hover {
+            color: var(--accent);
+        }
+        
+        .copyright {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .ctf-container {
+                grid-template-columns: 1fr;
+            }
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .user-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .difficulty-selector {
+                flex-direction: column;
+            }
+        }
+    </style>
+    <script>
+        // Obfuscated flags for 8 challenges
+        const flags = {
+            web: '=Y3Rme2MwMGswX2gxSipAY2shfQ', // CTF{c00k0_h1j@ck!}
+            crypto: '=R1R7cjB0MTNfZjFuIX0', // CTF{r0t13_f1n!}
+            forensics: '=Y1RmX2FzY2kxX2EydCE', // CTF{asci1_a2t!}
+            stego: '=zY3RmLXN0ZzBfbHNiIQ', // CTF-stg0_lsb!
+            reversing: '=dGN0Zl9yM3YzcjNkIX4', // tctf_r3v3r3d!~
+            binary: '=Q1RGX2J1ZjM0XzB2cjB3IQ', // CTF_buf34_0vr0w!
+            osint: '=kY3RmLWczMGcxc3Qh', // CTF-g30g1st!
+            misc: '=mQ1BGX3A0c3N3MHJkIQ' // CTF_p4ssw0rd!
+        };
+
+        function getFlag(challengeId) {
+            // Dynamic reconstruction with multiple security layers
+            let raw = atob(flags[challengeId].slice(1));
+            return raw.split('').map((c, i) =>
+                String.fromCharCode(c.charCodeAt(0) - (i % 3))
+            ).reverse().join('');
+        }
+
+        // Anti-cheat measures
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            alert('Right-click disabled to protect challenge integrity');
+        });
+
+        document.addEventListener('keydown', function(e) {
+            // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+            if (e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+                (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+                (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault();
+                alert('Developer tools are disabled during the CTF');
+            }
+        });
+
+        // DevTools detection
+        let devToolsOpen = false;
+        const devToolsChecker = setInterval(function() {
+            const widthThreshold = window.outerWidth - window.innerWidth > 160;
+            const heightThreshold = window.outerHeight - window.innerHeight > 160;
+
+            if ((widthThreshold || heightThreshold) && !devToolsOpen) {
+                devToolsOpen = true;
+                window.location.href = "anti-cheat.html"; // Redirect to warning page
+            }
+        }, 1000);
+
+        // Blur/focus detection as additional measure
+        window.addEventListener('blur', function() {
+            if (!document.hasFocus()) {
+                setTimeout(function() {
+                    if (!document.hasFocus()) {
+                        window.location.href = "anti-cheat.html";
+                    }
+                }, 1000);
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <!-- Username Modal -->
+    <div id="usernameModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Enter Your Hacker Alias</h2>
+            <p>Choose a unique username to appear on the leaderboard.</p>
+
+            <div class="form-group">
+                <label for="usernameInput">Username</label>
+                <input type="text" id="usernameInput" placeholder="e.g. cyber_ninja" autocomplete="off">
+                <p id="usernameError" style="color: var(--danger); margin-top: 5px; display: none;">This username is already taken!</p>
+            </div>
+
+            <h3 style="color: var(--accent); margin-top: 30px;">Select Difficulty</h3>
+            <div class="difficulty-selector">
+                <div class="difficulty-option selected" data-difficulty="easy">
+                    <div class="challenge-difficulty easy"></div>
+                    Beginner
+                </div>
+                <div class="difficulty-option" data-difficulty="medium">
+                    <div class="challenge-difficulty medium"></div>
+                    Intermediate
+                </div>
+                <div class="difficulty-option" data-difficulty="hard">
+                    <div class="challenge-difficulty hard"></div>
+                    Advanced
+                </div>
+            </div>
+
+            <button id="startCTF" class="start-btn">Begin CTF Challenge</button>
+        </div>
+    </div>
+
+    <!-- Main Interface -->
+    <div id="mainInterface" class="hidden">
+        <header>
+            <div class="container header-content">
+                <a href="#" class="logo">CyberSec CTF</a>
+                <div class="user-info">
+                    <div class="username" id="displayUsername">Hacker</div>
+                    <div class="timer" id="ctfTimer">60:00</div>
+                    <div class="score" id="ctfScore">0 pts</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="ctf-container">
+                <!-- Challenges Sidebar -->
+                <div class="sidebar">
+                    <h3>Challenges</h3>
+                    <ul class="challenge-list" id="challengeList">
+                        <!-- Filled by JavaScript -->
+                    </ul>
+                </div>
+
+                <!-- Challenge Content -->
+                <div class="challenge-content" id="challengeContent">
+                    <div id="noChallengeSelected">
+                        <h2>Select a challenge from the sidebar</h2>
+                        <p>Challenges are categorized by difficulty and type. Solve them to earn points!</p>
+                    </div>
+
+                    <!-- Web Challenge -->
+                    <div class="challenge-view hidden" id="webChallenge">
+                        <h2 class="challenge-title">
+                            <span>Cookie Monster</span>
+                            <span class="challenge-difficulty easy"></span>
+                        </h2>
+                        <div class="challenge-meta">
+                            <span>Web Exploitation</span>
+                            <span>100 points</span>
+                        </div>
+                        <div class="challenge-description">
+                            <p>This vulnerable page stores admin credentials in client-side cookies. Your goal is to steal the admin cookie to get the flag.</p>
+                            <p>Analyze the following JavaScript code:</p>
+                            <div class="terminal">
+                                <div class="terminal-line">
+                                    <span class="terminal-prompt">></span>
+                                    <span class="terminal-command">function checkAuth() {</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-prompt">></span>
+                                    <span class="terminal-command indent">if(document.cookie.includes("admin=true")) {</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-prompt">></span>
+                                    <span class="terminal-command indent-2">let encodedFlag = "Q1RGezAwazEzX2hpZGQzbn0="; // Base64 encoded flag</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-prompt">></span>
+                                    <span class="terminal-command indent-2">document.getElementById("flag").innerText = atob(encodedFlag);</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-prompt">></span>
+                                    <span class="terminal-command indent-2">document.getElementById("flag").style.display = "block";</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-prompt">></span>
+                                    <span class="terminal-command indent">} else {</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-prompt">></span>
+                                    <span class="terminal-command indent-2">alert("Access Denied");</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-prompt">></span>
+                                    <span class="terminal-command indent">}</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-prompt">></span>
+                                    <span class="terminal-command">}</span>
+                                </div>
+                            </div>
+                            <p><strong>Objective:</strong> Determine what cookie value would make this function reveal the flag.</p>
+                        </div>
+                        <button class="hint-btn" onclick="showHint('web')">
+                            <i class="fas fa-lightbulb"></i> Show Hint
+                        </button>
+                        <div class="challenge-hint" id="webHint">
+                            <p>The function checks if the cookie contains "admin=true". How could you set this cookie in your browser's developer tools?</p>
+                        </div>
+                        <div class="flag-form">
+                            <input type="text" class="flag-input" placeholder="Enter flag: CTF{...}">
+                            <button class="submit-btn" onclick="submitFlag('web')">Submit</button>
+                        </div>
+                        <p id="flag" style="display:none;"></p>
+                    </div>
+
+
+                    <!-- Crypto Challenge -->
+                    <div class="challenge-view hidden" id="cryptoChallenge">
+                        <h2 class="challenge-title">
+                            <span>ROT13 Cipher</span>
+                            <span class="challenge-difficulty easy"></span>
+                        </h2>
+                        <div class="challenge-meta">
+                            <span>Cryptography</span>
+                            <span>100 points</span>
+                        </div>
+                        <div class="challenge-description">
+                            <p>Decode this message to find the flag:</p>
+                            <div class="terminal">
+                                <div class="terminal-line">
+                                    <span class="terminal-prompt">$</span>
+                                    <span class="terminal-command">echo "PGT{ebg13_vf_geyvsg}" | rot13</span>
+                                </div>
+                            </div>
+                            <p>ROT13 is a simple letter substitution cipher that replaces a letter with the 13th letter after it in the alphabet.</p>
+                        </div>
+                        <button class="hint-btn" onclick="showHint('crypto')">
+                            <i class="fas fa-lightbulb"></i> Show Hint
+                        </button>
+                        <div class="challenge-hint" id="cryptoHint">
+                            <p>The cipher shifts each letter by 13 positions. For example, 'A' becomes 'N', 'B' becomes 'O', etc. Wrap around if you go past 'Z'.</p>
+                        </div>
+                        <div class="flag-form">
+                            <input type="text" class="flag-input" placeholder="Enter flag: CTF{...}">
+                            <button class="submit-btn" onclick="submitFlag('crypto')">Submit</button>
+                        </div>
+                    </div>
+
+                    <!-- Forensics Challenge -->
+                    <div class="challenge-view hidden" id="forensicsChallenge">
+                        <h2 class="challenge-title">
+                            <span>Hidden Message</span>
+                            <span class="challenge-difficulty medium"></span>
+                        </h2>
+                        <div class="challenge-meta">
+                            <span>Forensics</span>
+                            <span>150 points</span>
+                        </div>
+                        <div class="challenge-description">
+                            <p>We found this suspicious image. There's a hidden message somewhere in it.</p>
+                            <div style="background: #1E2D3D; padding: 20px; text-align: center; margin: 20px 0;">
+                                <pre style="font-family: monospace; line-height: 1; margin: 0;">
+                                ██████████████████████████
+                                █░░░░░░░░░░░░░░░░░░░░░░░█
+                                █░░░█▀▀▀▀▀█░░█▀▀▀▀▀█░░░█
+                                █░░░█     █░░█     █░░░█
+                                █░░░▀▀▀▀▀▀▀░░▀▀▀▀▀▀▀░░░█
+                                █░░░░░░░░░░▄▄▄░░░░░░░░░█
+                                █░░░█▀▀▀▀▀█░░█▀▀▀▀▀█░░░█
+                                █░░░█     █░░█     █░░░█
+                                █░░░▀▀▀▀▀▀▀░░▀▀▀▀▀▀▀░░░█
+                                █░░░░░░░░░░░░░░░░░░░░░░░█
+                                █████████████████████████
+                                </pre>
+                            </div>
+                            <p>Look closely at the pattern. The flag is hidden in the negative space.</p>
+                        </div>
+                        <button class="hint-btn" onclick="showHint('forensics')">
+                            <i class="fas fa-lightbulb"></i> Show Hint
+                        </button>
+                        <div class="challenge-hint" id="forensicsHint">
+                            <p>Try squinting your eyes or looking at the image from a distance. The spaces form letters that spell the flag.</p>
+                        </div>
+                        <div class="flag-form">
+                            <input type="text" class="flag-input" placeholder="Enter flag: CTF{...}">
+                            <button class="submit-btn" onclick="submitFlag('forensics')">Submit</button>
+                        </div>
+                    </div>
+
+                    <!-- Steganography Challenge -->
+                    <div class="challenge-view hidden" id="stegoChallenge">
+                        <h2 class="challenge-title">
+                            <span>Secret in the Image</span>
+                            <span class="challenge-difficulty medium"></span>
+                        </h2>
+                        <div class="challenge-meta">
+                            <span>Steganography</span>
+                            <span>200 points</span>
+                        </div>
+                        <div class="challenge-description">
+                            <p>We intercepted this image from a suspect. We believe there's hidden data in it.</p>
+                            <div style="text-align: center; margin: 20px 0;">
+                                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAADUUlEQVR4nO2WTUhUURTHf+85M6NOhk0fRYtAIYIWQbRoE7SIoE1B0KJNUBAEQQQt+giiRbvpI6hFEEELwUVQH0G0qE1BUESLFlELI5x5t3vvaxEzOjPv3TfTiA78Fw/ecO7vf84959z3YIwx5v9HqQYopfYDZ4A6IAQ+AE+BZ1rrT5VQqgK4DpwqMeQtcEdrPVuOQhXgBnC2jOEPgQ6tdViuQhXgLnCpjOEA3cAtAKVUo1KqRyn1XCn1QinVrZRqKBx8HThR5pyHgQ6l1FGl1EOgGagv6G8C2oGHwDGl1JzW+ms5E7QrpQ4Bd4C6Ev3HgVvAcaXUjNZ6oRyF2oD9JYYD7AGOAG3lKgTQWGZ/Y4VCAG/K7H9ToRDAkzL7H1coBNADfC3R/xXoBZ4opXaXo9Bz4H2J/vfAC2ABGCxHoTngXon+e8C81vqH1npQa/0VQCnVpJRqV0pdVEpdUEo1FQ7WWt8GXpWY4xVwW2sdFf5wDZgEJoCJ+JqMr4n4XlQY0AX0A0vAMrAIDABdWuuosLgYY4z5B1gBf+Q0YLZQk1kAAAAASUVORK5CYII="
+                                    alt="Steganography challenge image" style="max-width: 100%; height: auto;">
+                            </div>
+                            <p>Analyze the image to find the hidden flag. The flag is embedded within the image data.</p>
+                            <div style="text-align: center; margin: 15px 0;">
+                                <a href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAADUUlEQVR4nO2WTUhUURTHf+85M6NOhk0fRYtAIYIWQbRoE7SIoE1B0KJNUBAEQQQt+giiRbvpI6hFEEELwUVQH0G0qE1BUESLFlELI5x5t3vvaxEzOjPv3TfTiA78Fw/ecO7vf84959z3YIwx5v9HqQYopfYDZ4A6IAQ+AE+BZ1rrT5VQqgK4DpwqMeQtcEdrPVuOQhXgBnC2jOEPgQ6tdViuQhXgLnCpjOEA3cAtAKVUo1KqRyn1XCn1QinVrZRqKBx8HThR5pyHgQ6l1FGl1EOgGagv6G8C2oGHwDGl1JzW+ms5E7QrpQ4Bd4C6Ev3HgVvAcaXUjNZ6oRyF2oD9JYYD7AGOAG3lKgTQWGZ/Y4VCAG/K7H9ToRDAkzL7H1coBNADfC3R/xXoBZ4opXaXo9Bz4H2J/vfAC2ABGCxHoTngXon+e8C81vqH1npQa/0VQCnVpJRqV0pdVEpdUEo1FQ7WWt8GXpWY4xVwW2sdFf5wDZgEJoCJ+JqMr4n4XlQY0AX0A0vAMrAIDABdWuuosLgYY4z5B1gBf+Q0YLZQk1kAAAAASUVORK5CYII="
+                                    download="stego_challenge.png" class="submit-btn" style="display: inline-block; text-decoration: none; margin-top: 10px;">
+                                    <i class="fas fa-download"></i> Download Image
+                                </a>
+                            </div>
+                        </div>
+                        <button class="hint-btn" onclick="showHint('stego')">
+                            <i class="fas fa-lightbulb"></i> Show Hint
+                        </button>
+                        <div class="challenge-hint" id="stegoHint">
+                            <p>The flag is hidden in the least significant bits of the image pixels. Try extracting them.</p>
+                        </div>
+                        <div class="flag-form">
+                            <input type="text" class="flag-input" placeholder="Enter flag: CTF{...}">
+                            <button class="submit-btn" onclick="submitFlag('stego')">Submit</button>
+                        </div>
+                    </div>
+
+                    <!-- Reverse Engineering Challenge -->
+                    <div class="challenge-view hidden" id="reversingChallenge">
+                        <h2 class="challenge-title">
+                            <span>Password Checker</span>
+                            <span class="challenge-difficulty hard"></span>
+                        </h2>
+                        <div class="challenge-meta">
+                            <span>Reverse Engineering</span>
+                            <span>300 points</span>
+                        </div>
+                        <div class="challenge-description">
+                            <p>Analyze this password checker:</p>
+                            <div class="terminal">
+                                <div class="terminal-line"><span class="terminal-prompt">></span> function checkPass(input) {</div>
+                                <div class="terminal-line"><span class="terminal-prompt">></span> if (input.length !== 8) return false;</div>
+                                <div class="terminal-line"><span class="terminal-prompt">></span> let sum = input.split('').reduce((a,c) => a + c.charCodeAt(0), 0);</div>
+                                <div class="terminal-line"><span class="terminal-prompt">></span> return sum === 732 && input[2] === '3';</div>
+                                <div class="terminal-line"><span class="terminal-prompt">></span> }</div>
+                            </div>
+                            <p>Find an 8-character input that returns true.</p>
+                        </div>
+                        <button class="hint-btn" onclick="showHint('reversing')">
+                            <i class="fas fa-lightbulb"></i> Show Hint
+                        </button>
+                        <div class="challenge-hint" id="reversingHint">
+                            <p>The sum of ASCII values must be 732, and the third character must be '3'. Try working backwards from these constraints.</p>
+                        </div>
+                        <div class="flag-form">
+                            <input type="text" class="flag-input" placeholder="Enter flag: CTF{...}">
+                            <button class="submit-btn" onclick="submitFlag('reversing')">Submit</button>
+                        </div>
+                    </div>
+
+                    <!-- Binary Exploitation Challenge -->
+                    <div class="challenge-view hidden" id="binaryChallenge">
+                        <h2 class="challenge-title">
+                            <span>Buffer Overflow</span>
+                            <span class="challenge-difficulty hard"></span>
+                        </h2>
+                        <div class="challenge-meta">
+                            <span>Binary Exploitation</span>
+                            <span>350 points</span>
+                        </div>
+                        <div class="challenge-description">
+                            <p>This simulated binary has a buffer overflow vulnerability:</p>
+                            <div class="terminal">
+                                <div class="terminal-line"><span class="terminal-prompt">$</span> ./vulnerable_program</div>
+                                <div class="terminal-line terminal-output">Enter input: AAAAAAAAAAAAAAAAAAAAAA</div>
+                                <div class="terminal-line terminal-output">Segmentation fault (core dumped)</div>
+                            </div>
+                            <p>Crash the program with 24+ characters to reveal the flag.</p>
+                        </div>
+                        <button class="hint-btn" onclick="showHint('binary')">
+                            <i class="fas fa-lightbulb"></i> Show Hint
+                        </button>
+                        <div class="challenge-hint" id="binaryHint">
+                            <p>The buffer is 24 bytes long. Any input longer than that will overflow into adjacent memory, potentially overwriting the return address.</p>
+                        </div>
+                        <div class="flag-form">
+                            <input type="text" class="flag-input" placeholder="Enter flag: CTF{...}">
+                            <button class="submit-btn" onclick="submitFlag('binary')">Submit</button>
+                        </div>
+                    </div>
+
+                    <!-- OSINT Challenge -->
+                    <div class="challenge-view hidden" id="osintChallenge">
+                        <h2 class="challenge-title">
+                            <span>Geo-Location</span>
+                            <span class="challenge-difficulty medium"></span>
+                        </h2>
+                        <div class="challenge-meta">
+                            <span>OSINT</span>
+                            <span>200 points</span>
+                        </div>
+                        <div class="challenge-description">
+                            <p>Find the flag hidden in this image metadata:</p>
+                            <div style="text-align: center; margin: 20px 0;">
+                                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAADUUlEQVR4nO2WTUhUURTHf+85M6NOhk0fRYtAIYIWQbRoE7SIoE1B0KJNUBAEQQQt+giiRbvpI6hFEEELwUVQH0G0qE1BUESLFlELI5x5t3vvaxEzOjPv3TfTiA78Fw/ecO7vf84959z3YIwx5v9HqQYopfYDZ4A6IAQ+AE+BZ1rrT5VQqgK4DpwqMeQtcEdrPVuOQhXgBnC2jOEPgQ6tdViuQhXgLnCpjOEA3cAtAKVUo1KqRyn1XCn1QinVrZRqKBx8HThR5pyHgQ6l1FGl1EOgGagv6G8C2oGHwDGl1JzW+ms5E7QrpQ4Bd4C6Ev3HgVvAcaXUjNZ6oRyF2oD9JYYD7AGOAG3lKgTQWGZ/Y4VCAG/K7H9ToRDAkzL7H1coBNADfC3R/xXoBZ4opXaXo9Bz4H2J/vfAC2ABGCxHoTngXon+e8C81vqH1npQa/0VQCnVpJRqV0pdVEpdUEo1FQ7WWt8GXpWY4xVwW2sdFf5wDZgEJoCJ+JqMr4n4XlQY0AX0A0vAMrAIDABdWuuosLgYY4z5B1gBf+Q0YLZQk1kAAAAASUVORK5CYII="
+                                    alt="OSINT challenge image" style="max-width: 100%; height: auto;">
+                            </div>
+                            <p>Download and analyze the image file.</p>
+                            <div style="text-align: center; margin: 15px 0;">
+                                <a href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAADUUlEQVR4nO2WTUhUURTHf+85M6NOhk0fRYtAIYIWQbRoE7SIoE1B0KJNUBAEQQQt+giiRbvpI6hFEEELwUVQH0G0qE1BUESLFlELI5x5t3vvaxEzOjPv3TfTiA78Fw/ecO7vf84959z3YIwx5v9HqQYopfYDZ4A6IAQ+AE+BZ1rrT5VQqgK4DpwqMeQtcEdrPVuOQhXgBnC2jOEPgQ6tdViuQhXgLnCpjOEA3cAtAKVUo1KqRyn1XCn1QinVrZRqKBx8HThR5pyHgQ6l1FGl1EOgGagv6G8C2oGHwDGl1JzW+ms5E7QrpQ4Bd4C6Ev3HgVvAcaXUjNZ6oRyF2oD9JYYD7AGOAG3lKgTQWGZ/Y4VCAG/K7H9ToRDAkzL7H1coBNADfC3R/xXoBZ4opXaXo9Bz4H2J/vfAC2ABGCxHoTngXon+e8C81vqH1npQa/0VQCnVpJRqV0pdVEpdUEo1FQ7WWt8GXpWY4xVwW2sdFf5wDZgEJoCJ+JqMr4n4XlQY0AX0A0vAMrAIDABdWuuosLgYY4z5B1gBf+Q0YLZQk1kAAAAASUVORK5CYII="
+                                    download="osint_challenge.png" class="submit-btn" style="display: inline-block; text-decoration: none; margin-top: 10px;">
+                                    <i class="fas fa-download"></i> Download Image
+                                </a>
+                            </div>
+                        </div>
+                        <button class="hint-btn" onclick="showHint('osint')">
+                            <i class="fas fa-lightbulb"></i> Show Hint
+                        </button>
+                        <div class="challenge-hint" id="osintHint">
+                            <p>Check the EXIF data of the image. GPS coordinates or other metadata might contain the flag.</p>
+                        </div>
+                        <div class="flag-form">
+                            <input type="text" class="flag-input" placeholder="Enter flag: CTF{...}">
+                            <button class="submit-btn" onclick="submitFlag('osint')">Submit</button>
+                        </div>
+                    </div>
+
+                    <!-- Miscellaneous Challenge -->
+                    <div class="challenge-view hidden" id="miscChallenge">
+                        <h2 class="challenge-title">
+                            <span>Password Cracking</span>
+                            <span class="challenge-difficulty medium"></span>
+                        </h2>
+                        <div class="challenge-meta">
+                            <span>Miscellaneous</span>
+                            <span>250 points</span>
+                        </div>
+                        <div class="challenge-description">
+                            <p>Crack this MD5 hash: <code>5f4dcc3b5aa765d61d8327deb882cf99</code></p>
+                            <p>Hint: It's a very common password.</p>
+                        </div>
+                        <button class="hint-btn" onclick="showHint('misc')">
+                            <i class="fas fa-lightbulb"></i> Show Hint
+                        </button>
+                        <div class="challenge-hint" id="miscHint">
+                            <p>This is one of the most commonly used passwords. Try looking up the hash in an online MD5 database.</p>
+                        </div>
+                        <div class="flag-form">
+                            <input type="text" class="flag-input" placeholder="Enter flag: CTF{...}">
+                            <button class="submit-btn" onclick="submitFlag('misc')">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard -->
+            <div style="margin-top: 50px;">
+                <h2 style="color: var(--accent); border-bottom: 1px solid var(--accent); padding-bottom: 10px;">Leaderboard</h2>
+                <table class="leaderboard">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Username</th>
+                            <th>Score</th>
+                            <th>Challenges Solved</th>
+                            <th>Time Remaining</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <!-- Filled by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-discord"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-github"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+            </div>
+            <p class="copyright">© 2025 CyberSec CTF Arena. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // CTF Configuration
+        const challenges = {
+            web: {
+                id: "web",
+                title: "Cookie Monster",
+                category: "Web Exploitation",
+                difficulty: "easy",
+                points: 100,
+                flag: "CTF{c00k13_hij@ck_123}",
+                solved: false,
+                hintShown: false
+            },
+            crypto: {
+                id: "crypto",
+                title: "ROT13 Cipher",
+                category: "Cryptography",
+                difficulty: "easy",
+                points: 100,
+                flag: "CTF{rot13_is_trivial}",
+                solved: false,
+                hintShown: false
+            },
+            forensics: {
+                id: "forensics",
+                title: "Hidden Message",
+                category: "Forensics",
+                difficulty: "medium",
+                points: 150,
+                flag: "CTF{ascii_art}",
+                solved: false,
+                hintShown: false
+            },
+            stego: {
+                id: "stego",
+                title: "Secret in the Image",
+                category: "Steganography",
+                difficulty: "medium",
+                points: 200,
+                flag: "CTF{st3g0_lsb}",
+                solved: false,
+                hintShown: false
+            },
+            reversing: {
+                id: "reversing",
+                title: "Password Checker",
+                category: "Reverse Engineering",
+                difficulty: "hard",
+                points: 300,
+                flag: "CTF{r3v3rs3d}",
+                solved: false,
+                hintShown: false
+            },
+            binary: {
+                id: "binary",
+                title: "Buffer Overflow",
+                category: "Binary Exploitation",
+                difficulty: "hard",
+                points: 350,
+                flag: "CTF{buf34_0vr0w}",
+                solved: false,
+                hintShown: false
+            },
+            osint: {
+                id: "osint",
+                title: "Geo-Location",
+                category: "OSINT",
+                difficulty: "medium",
+                points: 200,
+                flag: "CTF{g30g1st}",
+                solved: false,
+                hintShown: false
+            },
+            misc: {
+                id: "misc",
+                title: "Password Cracking",
+                category: "Miscellaneous",
+                difficulty: "medium",
+                points: 250,
+                flag: "CTF{p4ssw0rd}",
+                solved: false,
+                hintShown: false
+            }
+        };
+
+        // Game State
+        let username = "";
+        let score = 0;
+        let timeLeft = 60 * 60; // 60 minutes in seconds
+        let timerInterval;
+        let difficulty = "easy";
+        let activeChallenge = null;
+
+        // DOM Elements
+        const usernameModal = document.getElementById('usernameModal');
+        const mainInterface = document.getElementById('mainInterface');
+        const usernameInput = document.getElementById('usernameInput');
+        const usernameError = document.getElementById('usernameError');
+        const displayUsername = document.getElementById('displayUsername');
+        const ctfTimer = document.getElementById('ctfTimer');
+        const ctfScore = document.getElementById('ctfScore');
+        const challengeList = document.getElementById('challengeList');
+        const noChallengeSelected = document.getElementById('noChallengeSelected');
+        const leaderboardBody = document.getElementById('leaderboardBody');
+        const startCTF = document.getElementById('startCTF');
+
+        // Initialize the CTF
+        function initCTF() {
+            const usernameValue = usernameInput.value.trim();
+
+            if (!usernameValue) {
+                usernameError.textContent = "Username cannot be empty";
+                usernameError.style.display = "block";
+                return;
+            }
+
+            // Check if username is available
+            if (isUsernameTaken(usernameValue)) {
+                usernameError.textContent = "Username already taken";
+                usernameError.style.display = "block";
+                return;
+            }
+
+            // Set username
+            username = usernameValue;
+            displayUsername.textContent = username;
+
+            // Initialize challenge list
+            renderChallengeList();
+
+            // Start timer
+            startTimer();
+
+            // Show main interface
+            usernameModal.style.display = "none";
+            mainInterface.classList.remove("hidden");
+
+            // Save initial progress
+            saveProgress();
+
+            // Update leaderboard
+            updateLeaderboard();
+        }
+
+        // Check if username is taken
+        function isUsernameTaken(username) {
+            const leaderboard = JSON.parse(localStorage.getItem('ctfLeaderboard') || '{}');
+            return leaderboard[username] !== undefined;
+        }
+
+        // Render challenge list based on difficulty
+        function renderChallengeList() {
+            challengeList.innerHTML = "";
+
+            Object.values(challenges).forEach(challenge => {
+                if (difficulty === "easy" && challenge.difficulty !== "easy") return;
+                if (difficulty === "medium" && challenge.difficulty === "hard") return;
+
+                const li = document.createElement("li");
+                li.className = `challenge-item ${challenge.solved ? "solved" : ""} ${activeChallenge === challenge.id ? "active" : ""}`;
+                li.innerHTML = `
+                    <div class="challenge-difficulty ${challenge.difficulty}"></div>
+                    ${challenge.title}
+                    <span style="float: right;">${challenge.points} pts</span>
+                `;
+                li.addEventListener("click", () => showChallenge(challenge.id));
+                challengeList.appendChild(li);
+            });
+        }
+
+        // Show a specific challenge
+        function showChallenge(challengeId) {
+            // Hide all challenge views
+            document.querySelectorAll(".challenge-view").forEach(view => {
+                view.classList.add("hidden");
+            });
+
+            // Show the selected challenge
+            const challengeView = document.getElementById(challengeId + "Challenge");
+            if (challengeView) {
+                challengeView.classList.remove("hidden");
+                noChallengeSelected.style.display = "none";
+            } else {
+                console.error(`Challenge view not found for ID: ${challengeId}`);
+                return;
+            }
+
+            // Update active challenge
+            activeChallenge = challengeId;
+
+            // Update challenge list highlighting
+            document.querySelectorAll(".challenge-item").forEach(item => {
+                item.classList.remove("active");
+            });
+            const activeItem = Array.from(document.querySelectorAll(".challenge-item")).find(item =>
+                item.textContent.includes(challenges[challengeId].title)
+            );
+            if (activeItem) activeItem.classList.add("active");
+        }
+
+        // Show hint for a challenge
+        function showHint(challengeId) {
+            const hint = document.getElementById(challengeId + "Hint");
+            if (hint) {
+                hint.style.display = "block";
+                if (challenges[challengeId]) {
+                    challenges[challengeId].hintShown = true;
+                    saveProgress();
+                }
+            } else {
+                console.error(`Hint element not found for challenge: ${challengeId}`);
+            }
+        }
+
+        // Submit flag for a challenge
+        function submitFlag(challengeId) {
+            const input = document.querySelector(`#${challengeId}Challenge .flag-input`);
+            if (!input) {
+                console.error(`Flag input not found for challenge: ${challengeId}`);
+                return;
+            }
+
+            const submittedFlag = input.value.trim();
+
+            if (!challenges[challengeId]) {
+                console.error(`Challenge not found: ${challengeId}`);
+                return;
+            }
+
+            if (submittedFlag === challenges[challengeId].flag) {
+                alert(`✅ Correct! You earned ${challenges[challengeId].points} points.`);
+                challenges[challengeId].solved = true;
+                score += challenges[challengeId].points;
+                ctfScore.textContent = `${score} pts`;
+
+                // Update UI
+                renderChallengeList();
+                updateLeaderboard();
+                saveProgress();
+            } else {
+                alert("❌ Incorrect flag. Try again!");
+            }
+        }
+
+        // Start the countdown timer
+        function startTimer() {
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Time's up! Your final score is " + score);
+                    saveProgress();
+                }
+            }, 1000);
+        }
+
+        // Update timer display
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            ctfTimer.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+
+        // Update leaderboard
+        function updateLeaderboard() {
+            // Get current leaderboard from localStorage
+            let leaderboard = JSON.parse(localStorage.getItem('ctfLeaderboard') || '{}');
+
+            // Update current user's score
+            leaderboard[username] = {
+                score: score,
+                solved: Object.values(challenges).filter(c => c.solved).length,
+                timeLeft: timeLeft,
+                timestamp: Date.now()
+            };
+
+            // Clean up old entries (older than 1 week)
+            const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            Object.keys(leaderboard).forEach(user => {
+                if (leaderboard[user].timestamp < oneWeekAgo) {
+                    delete leaderboard[user];
+                }
+            });
+
+            // Save updated leaderboard
+            localStorage.setItem('ctfLeaderboard', JSON.stringify(leaderboard));
+
+            // Convert to array and sort by score (descending)
+            const leaderboardArray = Object.entries(leaderboard).map(([user, data]) => ({
+                user,
+                score: data.score,
+                solved: data.solved,
+                timeLeft: data.timeLeft
+            })).sort((a, b) => {
+                // Sort by score first, then by solved challenges, then by time left
+                if (b.score !== a.score) return b.score - a.score;
+                if (b.solved !== a.solved) return b.solved - a.solved;
+                return b.timeLeft - a.timeLeft;
+            });
+
+            // Render leaderboard
+            leaderboardBody.innerHTML = leaderboardArray.map((entry, index) => {
+                const rankClass = index === 0 ? 'rank-1' :
+                    index === 1 ? 'rank-2' :
+                    index === 2 ? 'rank-3' : '';
+
+                const minutes = Math.floor(entry.timeLeft / 60);
+                const seconds = entry.timeLeft % 60;
+                const timeStr = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+                return `
+                    <tr>
+                        <td class="${rankClass}">${index + 1}</td>
+                        <td>${entry.user}</td>
+                        <td>${entry.score}</td>
+                        <td>${entry.solved}</td>
+                        <td>${timeStr}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Save progress to localStorage
+        function saveProgress() {
+            const progress = {
+                username: username,
+                score: score,
+                timeLeft: timeLeft,
+                difficulty: difficulty,
+                challenges: {}
+            };
+
+            Object.values(challenges).forEach(challenge => {
+                progress.challenges[challenge.id] = {
+                    solved: challenge.solved,
+                    hintShown: challenge.hintShown
+                };
+            });
+
+            localStorage.setItem("ctfProgress_" + username, JSON.stringify(progress));
+            updateLeaderboard();
+        }
+
+        // Load progress from localStorage
+        function loadProgress() {
+            const savedProgress = localStorage.getItem("ctfProgress_" + username);
+            if (savedProgress) {
+                const progress = JSON.parse(savedProgress);
+                score = progress.score || score;
+                timeLeft = progress.timeLeft || timeLeft;
+                difficulty = progress.difficulty || difficulty;
+
+                ctfScore.textContent = `${score} pts`;
+
+                if (progress.challenges) {
+                    Object.keys(progress.challenges).forEach(challengeId => {
+                        if (challenges[challengeId]) {
+                            challenges[challengeId].solved = progress.challenges[challengeId].solved || false;
+                            challenges[challengeId].hintShown = progress.challenges[challengeId].hintShown || false;
+                        }
+                    });
+                }
+            }
+        }
+
+        // Event Listeners
+        if (startCTF) {
+            startCTF.addEventListener("click", initCTF);
+        } else {
+            console.error("Start CTF button not found");
+        }
+
+        // Difficulty selection
+        document.querySelectorAll(".difficulty-option").forEach(option => {
+            option.addEventListener("click", () => {
+                document.querySelectorAll(".difficulty-option").forEach(opt => {
+                    opt.classList.remove("selected");
+                });
+                option.classList.add("selected");
+                difficulty = option.getAttribute("data-difficulty");
+            });
+        });
+
+        // Check for existing session on page load
+        document.addEventListener("DOMContentLoaded", () => {
+            // Show username modal by default
+            if (usernameModal) {
+                usernameModal.style.display = "flex";
+            } else {
+                console.error("Username modal not found");
+            }
+
+            // If we have a username in URL hash, try to load it
+            if (window.location.hash) {
+                const hashUsername = window.location.hash.substring(1);
+                const savedProgress = localStorage.getItem("ctfProgress_" + hashUsername);
+
+                if (savedProgress && usernameInput) {
+                    usernameInput.value = hashUsername;
+                    if (usernameError) {
+                        usernameError.style.display = "none";
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

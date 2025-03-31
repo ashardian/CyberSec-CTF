@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anti-Cheat Protection</title>
+    <style>
+         :root {
+            --danger-color: #dc3545;
+            --danger-light: #f8d7da;
+            --danger-dark: #bd2130;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            padding: 0;
+            margin: 0;
+            background-color: #f8f9fa;
+            color: var(--danger-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f8f9fa 0%, var(--danger-light) 100%);
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(220, 53, 69, 0.2);
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            border-left: 5px solid var(--danger-color);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            animation: pulse 2s infinite;
+        }
+        
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .countdown {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--danger-color);
+            background-color: var(--danger-light);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 5px;
+            animation: fadeInOut 1s infinite;
+        }
+        
+        .warning-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--danger-color);
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.03);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes fadeInOut {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="warning-icon">⚠️</div>
+        <h1>Anti-Cheat Protection Triggered</h1>
+        <p>Developer tools or External Extensions are not allowed during the CTF competition. This activity has been logged.</p>
+        <p>You will be redirected back in <span id="countdown" class="countdown">10</span> seconds.</p>
+        <p id="devtools-warning" style="color: var(--danger-color); font-weight: bold; display: none;">Please close developer tools to continue. Press F12 or Ctrl+Shift+I to close developer tools.</p>
+    </div>
+
+    <script>
+        let seconds = 10;
+        const countdownElement = document.getElementById('countdown');
+        const warningElement = document.getElementById('devtools-warning');
+        let timer;
+        let devToolsOpen = false;
+        let windowFocused = true;
+        let redirectBlocked = false;
+        let extensionsActive = false;
+
+        // Log the violation to server (in a real implementation)
+        function logViolation(type) {
+            // In a real implementation, this would send data to server
+            console.warn(`Security violation logged: ${type} at ${new Date().toISOString()}`);
+            // Could use fetch() to send to a logging endpoint
+        }
+
+        // Multiple detection methods for dev tools
+        function detectDevTools() {
+            // Method 1: Console size detection
+            const threshold = 160;
+            const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+            const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+            if (widthThreshold || heightThreshold) {
+                return true;
+            }
+
+            // Method 2: Debugger detection
+            let devToolsOpened = false;
+            const startTime = new Date().getTime();
+            debugger;
+            const endTime = new Date().getTime();
+            if (endTime - startTime > 100) {
+                return true;
+            }
+
+            // Method 3: Console function override detection
+            if (window.console && window.console.firebug) {
+                return true;
+            }
+
+            return false;
+        }
+
+        // Detect browser extensions
+        function detectExtensions() {
+            // Check for common extension objects
+            if (window.chrome && window.chrome.runtime && window.chrome.runtime.id) {
+                return true;
+            }
+
+            // Check for extension-specific CSS
+            const extensionSelectors = [
+                'div[class*="extension"]',
+                'div[id*="extension"]',
+                'div[class*="addon"]',
+                'div[id*="addon"]'
+            ];
+
+            for (const selector of extensionSelectors) {
+                if (document.querySelectorAll(selector).length > 0) {
+                    return true;
+                }
+            }
+
+            // Check for modified DOM that might indicate extensions
+            const originalBodyChildren = document.body.childElementCount;
+            setTimeout(() => {
+                if (document.body.childElementCount > originalBodyChildren) {
+                    extensionsActive = true;
+                }
+            }, 100);
+
+            // Check for extension-specific storage
+            try {
+                if (localStorage.getItem('extension_settings')) {
+                    return true;
+                }
+            } catch (e) {
+                // Ignore storage access errors
+            }
+
+            return false;
+        }
+
+        // Start countdown only if conditions are met
+        function startCountdown() {
+            if (timer) clearInterval(timer);
+
+            seconds = 10;
+            countdownElement.textContent = seconds;
+
+            timer = setInterval(() => {
+                // Check if dev tools are open, extensions active, or window lost focus
+                if (detectDevTools() || !windowFocused || detectExtensions()) {
+                    devToolsOpen = detectDevTools();
+                    extensionsActive = detectExtensions();
+
+                    if (devToolsOpen) {
+                        warningElement.style.display = 'block';
+                    }
+
+                    redirectBlocked = true;
+                    return; // Pause countdown
+                } else {
+                    devToolsOpen = false;
+                    extensionsActive = false;
+                    warningElement.style.display = 'none';
+
+                    // Only continue if we're not blocked
+                    if (!redirectBlocked) {
+                        seconds--;
+                        countdownElement.textContent = seconds;
+
+                        if (seconds <= 0) {
+                            clearInterval(timer);
+                            // Check one final time for extensions before redirecting
+                            if (detectExtensions()) {
+                                extensionsActive = true;
+                                redirectBlocked = true;
+                                logViolation('redirect-blocked-extensions');
+                                // Reset countdown
+                                seconds = 10;
+                                countdownElement.textContent = seconds;
+                                startCountdown();
+                            } else {
+                                window.location.href = "index.html";
+                            }
+                        }
+                    } else {
+                        // Reset countdown if we were blocked but now conditions are good
+                        redirectBlocked = false;
+                        seconds = 10;
+                        countdownElement.textContent = seconds;
+                    }
+                }
+            }, 1000);
+        }
+
+        // Initialize and run checks
+        function initialize() {
+            // Initial check
+            if (detectDevTools()) {
+                devToolsOpen = true;
+                warningElement.style.display = 'block';
+                logViolation('devtools-initial');
+            }
+
+            // Initial extension check
+            if (detectExtensions()) {
+                extensionsActive = true;
+                logViolation('extensions-active');
+                redirectBlocked = true;
+            }
+
+            startCountdown();
+
+            // Continuous checking for dev tools and extensions
+            setInterval(() => {
+                const toolsCurrentlyOpen = detectDevTools();
+                const extensionsCurrentlyActive = detectExtensions();
+
+                // If dev tools status changed
+                if (toolsCurrentlyOpen !== devToolsOpen) {
+                    devToolsOpen = toolsCurrentlyOpen;
+
+                    if (devToolsOpen) {
+                        warningElement.style.display = 'block';
+                        logViolation('devtools-opened');
+                        redirectBlocked = true;
+                    } else {
+                        warningElement.style.display = 'none';
+                        // Only reset if extensions are also not active
+                        if (!extensionsActive) {
+                            startCountdown();
+                        }
+                    }
+                }
+
+                // If extensions status changed
+                if (extensionsCurrentlyActive !== extensionsActive) {
+                    extensionsActive = extensionsCurrentlyActive;
+
+                    if (extensionsActive) {
+                        logViolation('extensions-activated');
+                        redirectBlocked = true;
+                    } else {
+                        // Only reset if dev tools are also not open
+                        if (!devToolsOpen) {
+                            startCountdown();
+                        }
+                    }
+                }
+            }, 500);
+        }
+
+        // Track window focus
+        window.addEventListener('focus', function() {
+            windowFocused = true;
+        });
+
+        window.addEventListener('blur', function() {
+            windowFocused = false;
+            logViolation('window-blur');
+        });
+
+        // Prevent right-click
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            logViolation('right-click');
+            return false;
+        });
+
+        // Prevent keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Prevent F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+            if (
+                e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c'))
+            ) {
+                e.preventDefault();
+                logViolation('keyboard-shortcut');
+                return false;
+            }
+        });
+
+        // Add event listener for beforeunload to prevent closing if extensions are active
+        window.addEventListener('beforeunload', function(e) {
+            if (detectExtensions()) {
+                // Show a confirmation dialog
+                e.preventDefault();
+                e.returnValue = 'Extensions are still active. Please disable them before leaving this page.';
+                logViolation('attempted-leave-with-extensions');
+                return e.returnValue;
+            }
+        });
+
+        // Initialize on load
+        initialize();
+    </script>
+</body>
+
+</html>
