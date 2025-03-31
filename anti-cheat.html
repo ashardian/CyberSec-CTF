@@ -201,27 +201,28 @@
             countdownElement.textContent = seconds;
 
             timer = setInterval(() => {
-                // Check if dev tools are open or extensions active
+                // Check if dev tools are open
                 devToolsOpen = detectDevTools();
-                extensionsActive = detectExtensions();
 
                 if (devToolsOpen) {
                     warningElement.style.display = 'block';
                     redirectBlocked = true;
                 } else {
                     warningElement.style.display = 'none';
+                    redirectBlocked = false;
                 }
 
+                // Check for extensions but don't block the timer
+                extensionsActive = detectExtensions();
                 if (extensionsActive) {
                     extensionWarningElement.style.display = 'block';
-                    redirectBlocked = true;
+                    logViolation('extensions-active');
                 } else {
                     extensionWarningElement.style.display = 'none';
                 }
 
-                // If both checks pass, continue countdown
-                if (!devToolsOpen && !extensionsActive) {
-                    redirectBlocked = false;
+                // If dev tools check passes, continue countdown
+                if (!devToolsOpen) {
                     seconds--;
                     countdownElement.textContent = seconds;
 
@@ -248,7 +249,7 @@
             if (extensionsActive) {
                 extensionWarningElement.style.display = 'block';
                 logViolation('extensions-active');
-                redirectBlocked = true;
+                // Don't block redirect for extensions
             }
 
             startCountdown();
@@ -268,6 +269,7 @@
                         redirectBlocked = true;
                     } else {
                         warningElement.style.display = 'none';
+                        redirectBlocked = false;
                     }
                 }
 
@@ -278,7 +280,7 @@
                     if (extensionsActive) {
                         extensionWarningElement.style.display = 'block';
                         logViolation('extensions-activated');
-                        redirectBlocked = true;
+                        // Don't block redirect for extensions
                     } else {
                         extensionWarningElement.style.display = 'none';
                     }
@@ -318,14 +320,11 @@
             }
         });
 
-        // Add event listener for beforeunload to prevent closing if extensions are active
+        // Add event listener for beforeunload to log attempt but not prevent closing
         window.addEventListener('beforeunload', function(e) {
             if (detectExtensions()) {
-                // Show a confirmation dialog
-                e.preventDefault();
-                e.returnValue = 'Extensions are still active. Please disable them before leaving this page.';
                 logViolation('attempted-leave-with-extensions');
-                return e.returnValue;
+                // Don't prevent leaving the page
             }
         });
 
