@@ -202,52 +202,32 @@
 
             timer = setInterval(() => {
                 // Check if dev tools are open or extensions active
-                if (detectDevTools() || detectExtensions()) {
-                    devToolsOpen = detectDevTools();
-                    extensionsActive = detectExtensions();
+                devToolsOpen = detectDevTools();
+                extensionsActive = detectExtensions();
 
-                    if (devToolsOpen) {
-                        warningElement.style.display = 'block';
-                    }
-
-                    if (extensionsActive) {
-                        extensionWarningElement.style.display = 'block';
-                    }
-
+                if (devToolsOpen) {
+                    warningElement.style.display = 'block';
                     redirectBlocked = true;
-                    return; // Pause countdown
                 } else {
-                    devToolsOpen = false;
-                    extensionsActive = false;
                     warningElement.style.display = 'none';
+                }
+
+                if (extensionsActive) {
+                    extensionWarningElement.style.display = 'block';
+                    redirectBlocked = true;
+                } else {
                     extensionWarningElement.style.display = 'none';
+                }
 
-                    // Only continue if we're not blocked
-                    if (!redirectBlocked) {
-                        seconds--;
-                        countdownElement.textContent = seconds;
+                // If both checks pass, continue countdown
+                if (!devToolsOpen && !extensionsActive) {
+                    redirectBlocked = false;
+                    seconds--;
+                    countdownElement.textContent = seconds;
 
-                        if (seconds <= 0) {
-                            clearInterval(timer);
-                            // Check one final time for extensions before redirecting
-                            if (detectExtensions()) {
-                                extensionsActive = true;
-                                extensionWarningElement.style.display = 'block';
-                                redirectBlocked = true;
-                                logViolation('redirect-blocked-extensions');
-                                // Reset countdown
-                                seconds = 10;
-                                countdownElement.textContent = seconds;
-                                startCountdown();
-                            } else {
-                                window.location.href = "index.html";
-                            }
-                        }
-                    } else {
-                        // Reset countdown if we were blocked but now conditions are good
-                        redirectBlocked = false;
-                        seconds = 10;
-                        countdownElement.textContent = seconds;
+                    if (seconds <= 0) {
+                        clearInterval(timer);
+                        window.location.href = "index.html";
                     }
                 }
             }, 1000);
@@ -256,17 +236,19 @@
         // Initialize and run checks
         function initialize() {
             // Initial check
-            if (detectDevTools()) {
-                devToolsOpen = true;
+            devToolsOpen = detectDevTools();
+            if (devToolsOpen) {
                 warningElement.style.display = 'block';
                 logViolation('devtools-initial');
+                redirectBlocked = true;
             }
 
             // Initial extension check
-            if (detectExtensions()) {
-                extensionsActive = true;
+            extensionsActive = detectExtensions();
+            if (extensionsActive) {
                 extensionWarningElement.style.display = 'block';
                 logViolation('extensions-active');
+                redirectBlocked = true;
             }
 
             startCountdown();
@@ -286,10 +268,6 @@
                         redirectBlocked = true;
                     } else {
                         warningElement.style.display = 'none';
-                        // Only reset if extensions are also not active
-                        if (!extensionsActive) {
-                            startCountdown();
-                        }
                     }
                 }
 
@@ -303,10 +281,6 @@
                         redirectBlocked = true;
                     } else {
                         extensionWarningElement.style.display = 'none';
-                        // Only reset if dev tools are also not open
-                        if (!devToolsOpen) {
-                            startCountdown();
-                        }
                     }
                 }
             }, 500);
