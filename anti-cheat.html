@@ -104,12 +104,14 @@
         <p>Developer tools or External Extensions are not allowed during the CTF competition. This activity has been logged.</p>
         <p>You will be redirected back in <span id="countdown" class="countdown">10</span> seconds.</p>
         <p id="devtools-warning" style="color: var(--danger-color); font-weight: bold; display: none;">Please close developer tools to continue. Press F12 or Ctrl+Shift+I to close developer tools.</p>
+        <p id="extension-warning" style="color: var(--danger-color); font-weight: bold; display: none;">Please disable browser extensions to continue. Go to chrome://extensions or about:addons to disable extensions.</p>
     </div>
 
     <script>
         let seconds = 10;
         const countdownElement = document.getElementById('countdown');
         const warningElement = document.getElementById('devtools-warning');
+        const extensionWarningElement = document.getElementById('extension-warning');
         let timer;
         let devToolsOpen = false;
         let windowFocused = true;
@@ -199,13 +201,17 @@
             countdownElement.textContent = seconds;
 
             timer = setInterval(() => {
-                // Check if dev tools are open, extensions active, or window lost focus
-                if (detectDevTools() || !windowFocused || detectExtensions()) {
+                // Check if dev tools are open or extensions active
+                if (detectDevTools() || detectExtensions()) {
                     devToolsOpen = detectDevTools();
                     extensionsActive = detectExtensions();
 
                     if (devToolsOpen) {
                         warningElement.style.display = 'block';
+                    }
+
+                    if (extensionsActive) {
+                        extensionWarningElement.style.display = 'block';
                     }
 
                     redirectBlocked = true;
@@ -214,6 +220,7 @@
                     devToolsOpen = false;
                     extensionsActive = false;
                     warningElement.style.display = 'none';
+                    extensionWarningElement.style.display = 'none';
 
                     // Only continue if we're not blocked
                     if (!redirectBlocked) {
@@ -225,6 +232,7 @@
                             // Check one final time for extensions before redirecting
                             if (detectExtensions()) {
                                 extensionsActive = true;
+                                extensionWarningElement.style.display = 'block';
                                 redirectBlocked = true;
                                 logViolation('redirect-blocked-extensions');
                                 // Reset countdown
@@ -257,8 +265,8 @@
             // Initial extension check
             if (detectExtensions()) {
                 extensionsActive = true;
+                extensionWarningElement.style.display = 'block';
                 logViolation('extensions-active');
-                redirectBlocked = true;
             }
 
             startCountdown();
@@ -290,9 +298,11 @@
                     extensionsActive = extensionsCurrentlyActive;
 
                     if (extensionsActive) {
+                        extensionWarningElement.style.display = 'block';
                         logViolation('extensions-activated');
                         redirectBlocked = true;
                     } else {
+                        extensionWarningElement.style.display = 'none';
                         // Only reset if dev tools are also not open
                         if (!devToolsOpen) {
                             startCountdown();
@@ -305,11 +315,13 @@
         // Track window focus
         window.addEventListener('focus', function() {
             windowFocused = true;
+            logViolation('window-focus');
         });
 
         window.addEventListener('blur', function() {
             windowFocused = false;
             logViolation('window-blur');
+            // Don't block the redirect when window loses focus
         });
 
         // Prevent right-click
